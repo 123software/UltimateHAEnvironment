@@ -1,0 +1,33 @@
+helloapp:
+  image: tutum/hello-world
+  ports:
+    - "80"
+  environment:
+    - SERVICE_80_NAME=helloapp
+    - SERVICE_NAME=helloapp
+    - SERVICE_TAGS=testing
+  net: "devopsnet"
+loadbalancer:
+  build: docker-lb/
+  ports:
+    - "80:80"
+    - "8080:8080"
+  net: "devopsnet"
+consul:
+  image: progrium/consul:latest
+  container_name: devops_consul
+  command: -server -bootstrap -advertise 10.0.0.2
+  ports:
+  - "8300:8300"
+  - "8400:8400"
+  - "8500:8500"
+  - "8600:53/udp"
+  net: "devopsnet"
+registrator:
+  image: gliderlabs/registrator:master
+  command: "-internal consul://devops_consul:8500"
+  volumes:
+    - "/var/run/docker.sock:/tmp/docker.sock"
+  ports:
+    - "10000:10000"
+  net: "devopsnet"
